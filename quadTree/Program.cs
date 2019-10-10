@@ -90,7 +90,7 @@ namespace quadTree
 
 
             // 每秒一次搜索, 这些单位平均一秒执行搜索次数
-            int searchCnt =  insertCnt;
+            int searchCnt = 1;// insertCnt;
             for(int i= 0;i<searchCnt;++i)
             {
                 var lst = tree.Find(circle);

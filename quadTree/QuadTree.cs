@@ -243,16 +243,8 @@ namespace quadTree
             // 没有节点
             do
             {
-                bool removeFromCurrentNode = false;
-
-                if (tmp.Cnt <= MAX_DATA_CNT && null == tmp.Sub)
-                    removeFromCurrentNode = true;
-
-                if (isInMultipleSub(tmp, data))
-                    removeFromCurrentNode = true;
-
                 // 节点数 满足，或者处于多个象限中
-                if (removeFromCurrentNode)
+                if ((tmp.Cnt <= MAX_DATA_CNT && null == tmp.Sub) || isInMultipleSub(tmp,data))
                 {
                     // 跳出循环
                     rm = true;
