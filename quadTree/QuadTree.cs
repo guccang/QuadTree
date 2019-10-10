@@ -288,6 +288,35 @@ namespace quadTree
 
             return success;
         }
+
+        private void ForeachNode(QuadNode node,List<QuadData> lst)
+        {
+            if (null == node)
+                return;
+
+            if (null == lst)
+                return;
+
+            Queue<QuadNode> nodes = new Queue<QuadNode>();
+            nodes.Enqueue(node);
+
+            var tmp = node;
+            do
+            {
+                tmp = nodes.Dequeue();
+                var n1 = tmp.Child;
+                while (null != n1)
+                {
+                    lst.Add(n1);
+                    n1 = n1.Next;
+                }
+                if(null != tmp.Sub)
+                {
+                    for (int i = 0; i < MAX_QUADRANT; ++i)
+                        nodes.Enqueue(tmp.Sub[i]);
+                }
+            } while (nodes.Count > 0);
+        }
         // 查找radius范围内的单位 ,圆形查找
         // 优化，如果node节点全在circle内，无需再判定相交
         // 直接遍历node节点和子节点即可
@@ -326,6 +355,64 @@ namespace quadTree
             } while (nodes.Count > 0);
             return list;
         }
+
+        public List<QuadData> FindEx(Circle circle)
+        {
+            List<QuadData> list = new List<QuadData>();
+            var tmp = _root;
+            Queue<QuadNode> nodes = new Queue<QuadNode>();
+            nodes.Enqueue(_root);
+            do
+            {
+                tmp = nodes.Dequeue();
+                // 如果相交
+                if (isCrossCricle(tmp.mbr, circle))
+                {
+                    // 在圆内
+                    if (isInCircle(tmp.mbr, circle))
+                    {
+                        ForeachNode(tmp, list);
+                        continue;
+                    }
+
+                    // 当前节点存放的单位检测
+                    var n1 = tmp.Child;
+                    while (null != n1)
+                    {
+                        if (isCrossCricle(n1.mbr, circle))
+                            list.Add(n1);
+                        n1 = n1.Next;
+                    }
+
+                    // 象限遍历检测
+                    if(null != tmp.Sub)
+                    {
+                        for (int i = 0; i < MAX_QUADRANT; ++i)
+                        {
+                            // 缓存象限数据
+                            nodes.Enqueue(tmp.Sub[i]);
+                        }
+                    }
+                }
+            } while (nodes.Count > 0);
+            return list;
+        }
+
+        // mbr被圆包围
+        private bool isInCircle(MBR mbr,Circle circle)
+        {
+            CorssCircleTestCnt++;
+            if (false == isPointInCricle(mbr.left, mbr.top, circle))
+                return false ;
+            if (false == isPointInCricle(mbr.right, mbr.top, circle))
+                return false;
+            if (false == isPointInCricle(mbr.right, mbr.bottom, circle))
+                return false;
+            if (false == isPointInCricle(mbr.left, mbr.bottom, circle))
+                return  false;
+            return true;
+        }
+
         // 判断mbr和圆是否相交
         private bool isCrossCricle(MBR mbr, Circle circle)
         {

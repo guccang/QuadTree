@@ -6,6 +6,32 @@ namespace quadTree
 {
     class Program
     {
+        static void find(Stopwatch sw,QuadTree tree,Circle circle,int insertCnt)
+        {
+               // 每秒一次搜索, 这些单位平均一秒执行搜索次数
+            int searchCnt =  1;
+            sw.Restart();
+            tree.CorssCircleTestCnt = 0;
+            for(int i= 0;i<searchCnt;++i)
+            {
+                var lst = tree.Find(circle);
+                Console.WriteLine($"find circle({circle.x},{circle.z},{circle.radius}) {i} lst:{lst.Count} treeTest:{tree.CorssCircleTestCnt} ms:{sw.Elapsed.TotalMilliseconds}");
+            }
+            var ms = sw.Elapsed.TotalMilliseconds;
+            Console.WriteLine($"findEnd ms={ms} from cnt:{insertCnt} treeTest:{tree.CorssCircleTestCnt}");
+
+            //System.Threading.Thread.Sleep(3000);
+
+            sw.Restart();
+            tree.CorssCircleTestCnt = 0;
+            for(int i= 0;i<searchCnt;++i)
+            {
+                var lst = tree.FindEx(circle);
+                Console.WriteLine($"findEx circle({circle.x},{circle.z},{circle.radius}) {i} lst:{lst.Count} treeTest:{tree.CorssCircleTestCnt} ms:{sw.Elapsed.TotalMilliseconds}");
+            }
+            ms = sw.Elapsed.TotalMilliseconds;
+            Console.WriteLine($"findEnd ms={ms} from cnt:{insertCnt} treeTest:{tree.CorssCircleTestCnt}");
+        }
         static void Main(string[] args)
         {
             QuadTree tree = new QuadTree();
@@ -45,11 +71,14 @@ namespace quadTree
             tree.Add(qd3);
             tree.Add(qd4);
 
+
             //  随机插入100个
-            int insertCnt = 5000;
+            int insertCnt = 1000000;
             float x, z;
-            int minwidth=1,maxwidth=20, minlen=1,maxlen=30;
+            int minwidth=1,maxwidth=10, minlen=1,maxlen=60;
             List<QuadData> rmList = new List<QuadData>();
+            QuadData randomSelect = null;
+            int randomSelectIndex = ran.Next(0, insertCnt);
             for (int i= 0;i < insertCnt;++i)
             {
                 var qd = new QuadData();
@@ -70,6 +99,9 @@ namespace quadTree
                 qd.Next = null;
                 tree.Add(qd);
                 rmList.Add(qd);
+
+                if (i == randomSelectIndex)
+                    randomSelect = qd;
             }
 
             string info = "";
@@ -81,24 +113,22 @@ namespace quadTree
             // 
             var circle = new Circle()
             {
+                 x = 30,
+                 z = 30,
+                 radius = 30,
+            };
+            var circle1 = new Circle()
+            {
                  x = 0,
                  z = 0,
-                 radius = 50,
+                 radius = 500,
             };
             Stopwatch sw = new Stopwatch();
-            sw.Start();
-
 
             // 每秒一次搜索, 这些单位平均一秒执行搜索次数
-            int searchCnt = 1;// insertCnt;
-            for(int i= 0;i<searchCnt;++i)
-            {
-                var lst = tree.Find(circle);
-                Console.WriteLine($"find {i} lst:{lst.Count} treeTest:{tree.CorssCircleTestCnt}");
-            }
-
-            var ms = sw.Elapsed.TotalMilliseconds;
-            Console.WriteLine($"find ms={ms} from cnt:{insertCnt} treeTest:{tree.CorssCircleTestCnt}");
+            double ms = 0;
+            find(sw, tree, circle, insertCnt);
+            find(sw, tree, circle1, insertCnt);
 
             sw.Restart();
             int rmCnt = 0;
@@ -106,15 +136,20 @@ namespace quadTree
             if (rm)
                 rmCnt++;
             ms = sw.Elapsed.TotalMilliseconds;
-            for (int i = 0; i < rmList.Count; ++i)
-            {
-                rm = tree.Remove(rmList[i]);
-                if (rm)
-                    rmCnt++;
-                if (false == rm)
-                    Console.WriteLine($"rm rmList[i] {rmList[i].Id} not success");
-            }
-            Console.WriteLine($"remove ms={ms} rm:{rm} rmCnt:{rmCnt}");
+            //for (int i = 0; i < rmList.Count; ++i)
+            //{
+            //    rm = tree.Remove(rmList[i]);
+            //    if (rm)
+            //        rmCnt++;
+            //    if (false == rm)
+            //        Console.WriteLine($"rm rmList[i] {rmList[i].Id} not success");
+            //}
+            Console.WriteLine($"remove qd1 ms={ms} rm:{rm} rmCnt:{rmCnt}");
+
+            sw.Restart();
+            rm = tree.Remove(randomSelect);
+            ms = sw.Elapsed.TotalMilliseconds;
+            Console.WriteLine($"remove randomSelect index={randomSelectIndex} ms={ms} rm:{rm} rmCnt:{rmCnt}");
 
             sw.Restart();
             tree.Remove(qd2);
